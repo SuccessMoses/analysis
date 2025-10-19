@@ -38,8 +38,10 @@ structure PreInt where
 instance PreInt.instSetoid : Setoid PreInt where
   r a b := a.minuend + b.subtrahend = b.minuend + a.subtrahend
   iseqv := {
-    refl := by sorry
-    symm := by sorry
+    refl := by
+      intro ⟨a, b⟩; simp_all
+    symm := by
+      intro ⟨a, b⟩ ⟨c, d⟩; simp_all
     trans := by
       -- This proof is written to follow the structure of the original text.
       intro ⟨ a,b ⟩ ⟨ c,d ⟩ ⟨ e,f ⟩ h1 h2; simp_all
@@ -56,7 +58,7 @@ theorem PreInt.eq (a b c d:ℕ) : (⟨ a,b ⟩: PreInt) ≈ ⟨ c,d ⟩ ↔ a + 
 
 abbrev Int := Quotient PreInt.instSetoid
 
-abbrev Int.formalDiff (a b:ℕ)  : Int := Quotient.mk PreInt.instSetoid ⟨ a,b ⟩
+abbrev Int.formalDiff (a b:ℕ)  : Int := ⟦⟨ a,b ⟩⟧
 
 infix:100 " —— " => Int.formalDiff
 
@@ -75,7 +77,10 @@ instance Int.decidableEq : DecidableEq Int := by
   exact Quotient.recOnSubsingleton₂ a b this
 
 /-- Definition 4.1.1 (Integers) -/
-theorem Int.eq_diff (n:Int) : ∃ a b, n = a —— b := by apply n.ind _; intro ⟨ a, b ⟩; use a, b
+theorem Int.eq_diff (n:Int) : ∃ a b, n = a —— b := by
+  apply n.ind
+  intro ⟨a, b⟩
+  use a, b
 
 /-- Lemma 4.1.3 (Addition well-defined) -/
 instance Int.instAdd : Add Int where
@@ -89,6 +94,9 @@ instance Int.instAdd : Add Int where
 
 /-- Definition 4.1.2 (Definition of addition) -/
 theorem Int.add_eq (a b c d:ℕ) : a —— b + c —— d = (a+c)——(b+d) := Quotient.lift₂_mk _ _ _ _
+
+#check Quotient.lift₂_mk
+#check Quotient.lift₂
 
 /-- Lemma 4.1.3 (Multiplication well-defined) -/
 theorem Int.mul_congr_left (a b a' b' c d : ℕ) (h: a —— b = a' —— b') :
@@ -122,6 +130,8 @@ instance Int.instMul : Mul Int where
 /-- Definition 4.1.2 (Multiplication of integers) -/
 theorem Int.mul_eq (a b c d:ℕ) : a —— b * c —— d = (a*c+b*d) —— (a*d+b*c) := Quotient.lift₂_mk _ _ _ _
 
+#check Quotient.lift_mk
+
 instance Int.instOfNat {n:ℕ} : OfNat Int n where
   ofNat := n —— 0
 
@@ -148,11 +158,19 @@ example : 3 = 3 —— 0 := rfl
 example : 3 = 4 —— 1 := by rw [Int.ofNat_eq, Int.eq]
 
 /-- (Not from textbook) 0 is the only natural whose cast is 0 -/
-lemma Int.cast_eq_0_iff_eq_0 (n : ℕ) : (n : Int) = 0 ↔ n = 0 := by sorry
+lemma Int.cast_eq_0_iff_eq_0 (n : ℕ) : (n : Int) = 0 ↔ n = 0 := by
+  have h : n + 0 = 0 + 0 ↔ n = 0 := by simp_all
+  rw [natCast_eq, ofNat_eq, eq, h]
 
 /-- Definition 4.1.4 (Negation of integers) / Exercise 4.1.2 -/
 instance Int.instNeg : Neg Int where
-  neg := Quotient.lift (fun ⟨ a, b ⟩ ↦ b —— a) (by sorry)
+  neg := Quotient.lift (fun ⟨ a, b ⟩ ↦ b —— a) (by
+    intro a b;
+    intro h; dsimp
+    rw [PreInt.eq, add_comm a.minuend] at h
+    rw [Int.eq, add_comm, h])
+
+#check Quotient.lift
 
 theorem Int.neg_eq (a b:ℕ) : -(a —— b) = b —— a := rfl
 
@@ -190,15 +208,40 @@ theorem Int.not_pos_neg (x:Int) : x.IsPos ∧ x.IsNeg → False := by
 
 /-- Proposition 4.1.6 (laws of algebra) / Exercise 4.1.4 -/
 instance Int.instAddGroup : AddGroup Int :=
-  AddGroup.ofLeftAxioms (by sorry) (by sorry) (by sorry)
+  AddGroup.ofLeftAxioms
+  (by
+    intro a b c
+    obtain ⟨ a₁, a₂, rfl ⟩ := eq_diff a
+    obtain ⟨ b₁, b₂, rfl ⟩ := eq_diff b
+    obtain ⟨ c₁, c₂, rfl ⟩ := eq_diff c
+    repeat rw [add_eq]
+    simp [Nat.add_assoc])
+  (by
+    intro a
+    obtain ⟨a₁, a₂, rfl⟩ := eq_diff a
+    rw [ofNat_eq, add_eq, Nat.zero_add, Nat.zero_add])
+  (by
+    intro a
+    obtain ⟨ a₁, a₂, rfl ⟩ := eq_diff a
+    rw [neg_eq, ofNat_eq, add_eq, eq]
+    simp [Nat.add_comm])
 
 /-- Proposition 4.1.6 (laws of algebra) / Exercise 4.1.4 -/
 instance Int.instAddCommGroup : AddCommGroup Int where
-  add_comm := by sorry
+  add_comm := by
+    intro a b
+    obtain ⟨a₁, a₂, rfl⟩ := eq_diff a
+    obtain ⟨b₁, b₂, rfl⟩ := eq_diff b
+    rw [add_eq, add_eq, add_comm a₁, add_comm a₂]
 
 /-- Proposition 4.1.6 (laws of algebra) / Exercise 4.1.4 -/
 instance Int.instCommMonoid : CommMonoid Int where
-  mul_comm := by sorry
+  mul_comm := by
+    intro a b
+    obtain ⟨a₁, a₂, rfl⟩ := eq_diff a
+    obtain ⟨b₁, b₂, rfl⟩ := eq_diff b
+    rw [mul_eq, mul_eq]
+    simp only [mul_comm, add_comm]
   mul_assoc := by
     -- This proof is written to follow the structure of the original text.
     intro x y z
@@ -206,8 +249,16 @@ instance Int.instCommMonoid : CommMonoid Int where
     obtain ⟨ c, d, rfl ⟩ := eq_diff y
     obtain ⟨ e, f, rfl ⟩ := eq_diff z
     simp_rw [mul_eq]; congr 1 <;> ring
-  one_mul := by sorry
-  mul_one := by sorry
+  one_mul := by
+    intro a
+    obtain ⟨a₁, a₂, rfl⟩ := eq_diff a
+    rw [ofNat_eq, mul_eq]
+    simp only [one_mul, zero_mul, add_zero]
+  mul_one := by
+    intro a
+    obtain ⟨a₁, a₂, rfl⟩ := eq_diff a
+    rw [ofNat_eq, mul_eq]
+    simp only [mul_one, mul_zero, add_zero, zero_add]
 
 /-- Proposition 4.1.6 (laws of algebra) / Exercise 4.1.4 -/
 instance Int.instCommRing : CommRing Int where
@@ -219,13 +270,20 @@ instance Int.instCommRing : CommRing Int where
 /-- Definition of subtraction -/
 theorem Int.sub_eq (a b:Int) : a - b = a + (-b) := by rfl
 
-theorem Int.sub_eq_formal_sub (a b:ℕ) : (a:Int) - (b:Int) = a —— b := by sorry
+theorem Int.sub_eq_formal_sub (a b:ℕ) : (a:Int) - (b:Int) = a —— b := by
+  repeat rw [natCast_eq]
+  rw [sub_eq, neg_eq, add_eq, add_zero, zero_add]
 
 /-- Proposition 4.1.8 (No zero divisors) / Exercise 4.1.5 -/
 theorem Int.mul_eq_zero {a b:Int} (h: a * b = 0) : a = 0 ∨ b = 0 := by sorry
 
 /-- Corollary 4.1.9 (Cancellation law) / Exercise 4.1.6 -/
-theorem Int.mul_right_cancel₀ (a b c:Int) (h: a*c = b*c) (hc: c ≠ 0) : a = b := by sorry
+theorem Int.mul_right_cancel₀ (a b c:Int) (h: a*c = b*c) (hc: c ≠ 0) : a = b := by
+  obtain ⟨ a₁, a₂, rfl ⟩ := eq_diff a
+  obtain ⟨ b₁, b₂, rfl ⟩ := eq_diff b
+  obtain ⟨ c₁, c₂, rfl ⟩ := eq_diff c
+  rw [mul_eq, mul_eq, eq] at h
+  rw [eq]
 
 /-- Definition 4.1.10 (Ordering of the integers) -/
 instance Int.instLE : LE Int where

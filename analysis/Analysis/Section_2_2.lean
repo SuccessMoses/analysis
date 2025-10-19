@@ -537,8 +537,4 @@ theorem Nat.induction_from {n:Nat} {P: Nat → Prop} (hind: ∀ m, P m → P (m+
     P n → ∀ m, m ≥ n → P m := by
   sorry
 
-
-
 end Chapter2
-
-#check Nat.lt_succ_self

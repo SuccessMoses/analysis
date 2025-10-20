@@ -206,6 +206,19 @@ theorem Int.not_pos_neg (x:Int) : x.IsPos ∧ x.IsNeg → False := by
   rintro ⟨ ⟨ n, _, rfl ⟩, ⟨ m, _, hm ⟩ ⟩; simp_rw [natCast_eq, neg_eq, eq] at hm
   linarith
 
+/--Cancellation of addition-/
+theorem Int.mul_left_cancel (a b c:Int) (h : a + b = a + c) : b = c := by
+    obtain ⟨a₁, a₂, rfl⟩ := eq_diff a
+    obtain ⟨b₁, b₂, rfl⟩ := eq_diff b
+    obtain ⟨c₁, c₂, rfl⟩ := eq_diff c
+    simp only [add_eq, eq] at h
+    have h₁ : a₁ + b₁ + (a₂ + c₂) = (a₁ + a₂) + (b₁ + c₂) := by abel
+    have h₂ : a₁ + c₁ + (a₂ + b₂) = (a₁ + a₂) + (c₁ + b₂) := by abel
+    rw [h₁, h₂] at h
+    simp only [eq]
+    apply add_left_cancel
+    exact h
+
 /-- Proposition 4.1.6 (laws of algebra) / Exercise 4.1.4 -/
 instance Int.instAddGroup : AddGroup Int :=
   AddGroup.ofLeftAxioms
@@ -262,10 +275,30 @@ instance Int.instCommMonoid : CommMonoid Int where
 
 /-- Proposition 4.1.6 (laws of algebra) / Exercise 4.1.4 -/
 instance Int.instCommRing : CommRing Int where
-  left_distrib := by sorry
-  right_distrib := by sorry
-  zero_mul := by sorry
-  mul_zero := by sorry
+  left_distrib := by
+    intro a b c
+    obtain ⟨a₁, a₂, rfl⟩ := eq_diff a
+    obtain ⟨b₁, b₂, rfl⟩ := eq_diff b
+    obtain ⟨c₁, c₂, rfl⟩ := eq_diff c
+    simp only [add_eq, mul_eq, eq, mul_add]
+    abel
+  right_distrib := by
+    intro a b c
+    obtain ⟨a₁, a₂, rfl⟩ := eq_diff a
+    obtain ⟨b₁, b₂, rfl⟩ := eq_diff b
+    obtain ⟨c₁, c₂, rfl⟩ := eq_diff c
+    simp only [add_eq, mul_eq, eq, add_mul]
+    abel
+  zero_mul := by
+    intro a
+    obtain ⟨a₁, a₂, rfl⟩ := eq_diff a
+    simp only [ofNat_eq, mul_eq, eq]
+    abel
+  mul_zero := by
+    intro a
+    obtain ⟨a₁, a₂, rfl⟩ := eq_diff a
+    simp only [ofNat_eq, mul_eq, eq]
+    abel
 
 /-- Definition of subtraction -/
 theorem Int.sub_eq (a b:Int) : a - b = a + (-b) := by rfl
@@ -278,12 +311,7 @@ theorem Int.sub_eq_formal_sub (a b:ℕ) : (a:Int) - (b:Int) = a —— b := by
 theorem Int.mul_eq_zero {a b:Int} (h: a * b = 0) : a = 0 ∨ b = 0 := by sorry
 
 /-- Corollary 4.1.9 (Cancellation law) / Exercise 4.1.6 -/
-theorem Int.mul_right_cancel₀ (a b c:Int) (h: a*c = b*c) (hc: c ≠ 0) : a = b := by
-  obtain ⟨ a₁, a₂, rfl ⟩ := eq_diff a
-  obtain ⟨ b₁, b₂, rfl ⟩ := eq_diff b
-  obtain ⟨ c₁, c₂, rfl ⟩ := eq_diff c
-  rw [mul_eq, mul_eq, eq] at h
-  rw [eq]
+theorem Int.mul_right_cancel₀ (a b c:Int) (h: a*c = b*c) (hc: c ≠ 0) : a = b := by sorry
 
 /-- Definition 4.1.10 (Ordering of the integers) -/
 instance Int.instLE : LE Int where
@@ -298,7 +326,31 @@ theorem Int.le_iff (a b:Int) : a ≤ b ↔ ∃ t:ℕ, b = a + t := by rfl
 theorem Int.lt_iff (a b:Int): a < b ↔ (∃ t:ℕ, b = a + t) ∧ a ≠ b := by rfl
 
 /-- Lemma 4.1.11(a) (Properties of order) / Exercise 4.1.7 -/
-theorem Int.lt_iff_exists_positive_difference (a b:Int) : a < b ↔ ∃ n:ℕ, n ≠ 0 ∧ b = a + n := by sorry
+theorem Int.lt_iff_exists_positive_difference (a b:Int) : a < b ↔ ∃ n:ℕ, n ≠ 0 ∧ b = a + n := by
+  constructor
+  · intro hab
+    rw [lt_iff] at hab
+    obtain ⟨⟨k, rfl⟩, hab⟩ := hab
+    use k
+    constructor
+    · by_contra h
+      rw [← cast_eq_0_iff_eq_0] at h
+      rw [h, add_zero] at hab
+      contradiction
+    rfl
+  intro h
+  rw [lt_iff]
+  obtain ⟨n, hn, rfl⟩ := h
+  constructor
+  · use n
+  by_contra h
+  nth_rw 1 [← add_zero a] at h
+  have : (n: Int) = 0 := by
+    apply add_left_cancel
+    observe : a + n = a + 0
+    exact this
+  rw [cast_eq_0_iff_eq_0] at this
+  contradiction
 
 /-- Lemma 4.1.11(b) (Addition preserves order) / Exercise 4.1.7 -/
 theorem Int.add_lt_add_right {a b:Int} (c:Int) (h: a < b) : a+c < b+c := by sorry

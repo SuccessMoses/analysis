@@ -179,6 +179,10 @@ example : -(3 —— 5) = 5 —— 3 := rfl
 abbrev Int.IsPos (x:Int) : Prop := ∃ (n:ℕ), n > 0 ∧ x = n
 abbrev Int.IsNeg (x:Int) : Prop := ∃ (n:ℕ), n > 0 ∧ x = -n
 
+theorem isPos_iff (x:Int) : x.IsPos ↔ ∃ (n:ℕ), n > 0 ∧ x = n := by rfl
+
+theorem isNeg_iff (x:Int) : x.IsNeg ↔ ∃ (n:ℕ), n > 0 ∧ x = -n := by rfl
+
 /-- Lemma 4.1.5 (trichotomy of integers )-/
 theorem Int.trichotomous (x:Int) : x = 0 ∨ x.IsPos ∨ x.IsNeg := by
   -- This proof is slightly modified from that in the original text.
@@ -353,13 +357,43 @@ theorem Int.lt_iff_exists_positive_difference (a b:Int) : a < b ↔ ∃ n:ℕ, n
   contradiction
 
 /-- Lemma 4.1.11(b) (Addition preserves order) / Exercise 4.1.7 -/
-theorem Int.add_lt_add_right {a b:Int} (c:Int) (h: a < b) : a+c < b+c := by sorry
+theorem Int.add_lt_add_right {a b:Int} (c:Int) (h: a < b) : a+c < b+c := by
+  rw [lt_iff] at *
+  obtain ⟨⟨k, rfl⟩, hab⟩ := h
+  constructor
+  · use k
+    abel
+  by_contra h
+  rw [add_comm a, add_comm (a + k)] at h
+  have : a = a + k := by apply add_left_cancel; exact h
+  contradiction
 
 /-- Lemma 4.1.11(c) (Positive multiplication preserves order) / Exercise 4.1.7 -/
-theorem Int.mul_lt_mul_of_pos_right {a b c:Int} (hab : a < b) (hc: 0 < c) : a*c < b*c := by sorry
+theorem Int.mul_lt_mul_of_pos_right {a b c:Int} (hab : a < b) (hc: 0 < c) : a*c < b*c := by
+  rw [lt_iff] at *
+  obtain ⟨⟨k, rfl⟩, hab⟩ := hab
+  obtain ⟨⟨n, rfl⟩, hn⟩ := hc
+  constructor
+  · use k*n
+    simp only [mul_add, add_mul]
+    ring_nf
+    rw [add_left_cancel_iff]
+    norm_cast
+  · by_contra h
+    apply mul_right_cancel₀ at h
+    rw [ne_comm] at hn
+    apply h at hn
+    contradiction
 
 /-- Lemma 4.1.11(d) (Negation reverses order) / Exercise 4.1.7 -/
-theorem Int.neg_gt_neg {a b:Int} (h: b < a) : -a < -b := by sorry
+theorem Int.neg_gt_neg {a b:Int} (h: b < a) : -a < -b := by
+  rw [lt_iff] at *
+  obtain ⟨⟨k, rfl⟩, hk⟩ := h
+  constructor
+  · use k
+    abel
+  by_contra h
+  sorry
 
 /-- Lemma 4.1.11(d) (Negation reverses order) / Exercise 4.1.7 -/
 theorem Int.neg_ge_neg {a b:Int} (h: b ≤ a) : -a ≤ -b := by sorry
@@ -368,7 +402,35 @@ theorem Int.neg_ge_neg {a b:Int} (h: b ≤ a) : -a ≤ -b := by sorry
 theorem Int.lt_trans {a b c:Int} (hab: a < b) (hbc: b < c) : a < c := by sorry
 
 /-- Lemma 4.1.11(f) (Order trichotomy) / Exercise 4.1.7 -/
-theorem Int.trichotomous' (a b:Int) : a > b ∨ a < b ∨ a = b := by sorry
+theorem Int.trichotomous' (a b:Int) : a > b ∨ a < b ∨ a = b := by
+  obtain hab | hab | hab := trichotomous (a-b)
+  · right; right
+    rw [← add_zero b, ← hab]
+    abel
+  · left
+    rw [isPos_iff] at hab
+    rw [gt_iff_lt, lt_iff]
+    obtain ⟨n, hn, ne⟩ := hab
+    constructor
+    · use n
+      rw [← ne]
+      abel
+    by_contra h
+    rw [h] at ne
+    abel_nf at ne;
+    rw [eq_comm, cast_eq_0_iff_eq_0] at ne
+    linarith
+  · right; left
+    rw [isNeg_iff] at hab
+    rw [lt_iff]
+    obtain ⟨n, hn, ne⟩ := hab
+    constructor
+    · use n
+      sorry
+    by_contra h
+    rw [h, eq_comm] at ne;
+    simp only [natCast_eq, neg_eq] at ne; abel_nf at ne
+    sorry
 
 /-- Lemma 4.1.11(f) (Order trichotomy) / Exercise 4.1.7 -/
 theorem Int.not_gt_and_lt (a b:Int) : ¬ (a > b ∧ a < b):= by sorry
@@ -400,9 +462,20 @@ lemma Int.is_additive_identity_iff_eq_0 (b : Int) : (∀ a, a = a + b) ↔ b = 0
 
 /-- (Not from textbook) Int has the structure of a linear ordering. -/
 instance Int.instLinearOrder : LinearOrder Int where
-  le_refl := sorry
-  le_trans := sorry
-  lt_iff_le_not_ge := sorry
+  le_refl := by
+    intro a;
+    rw [le_iff]
+    use 0; abel
+  le_trans := by
+    intro a b c
+    intro hab hbc
+    obtain ⟨m, rfl⟩ := hab
+    obtain ⟨n, rfl⟩ := hbc
+    rw [le_iff]
+    use m + n
+    rw [add_assoc, add_left_cancel_iff]
+    norm_cast
+  lt_iff_le_not_ge := by sorry
   le_antisymm := sorry
   le_total := sorry
   toDecidableLE := decidableRel

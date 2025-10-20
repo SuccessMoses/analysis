@@ -6,6 +6,7 @@ _site/
 
 # IDE files
 .vscode/
+.venv/
 
 # Editor specific files
 .DS_Store

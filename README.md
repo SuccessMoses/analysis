@@ -1,7 +1,9 @@
 # About this fork
 
-This fork is based on Prof. Terence Tao’s *Lean formalization of Analysis I*.  
+This fork is based on Prof. Terence Tao’s *Lean formalization of Analysis I*.
+
 The goal is to attempt all the exercises (of which there are many). Although I usually proceed in a linear fashion, this isn’t strict — I may skip some sections in Chapter *x* and continue with Chapter *x + 1*. But the overall aim is to attempt every exercise.  
+
 All credit for the original formalization of the problems and structure goes to Prof. Terence Tao.
 
 # Lean formalization of _Analysis I_

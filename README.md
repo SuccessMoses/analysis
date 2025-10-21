@@ -1,3 +1,9 @@
+# About this fork
+
+This fork is based on Prof. Terence Tao’s *Lean formalization of Analysis I*.  
+The goal is to attempt all the exercises (of which there are many). Although I usually proceed in a linear fashion, this isn’t strict — I may skip some sections in Chapter *x* and continue with Chapter *x + 1*. But the overall aim is to attempt every exercise.  
+All credit for the original formalization of the problems and structure goes to Prof. Terence Tao.
+
 # Lean formalization of _Analysis I_
 
 The files in this directory contain a formalization of my text [_Analysis I_](https://terrytao.wordpress.com/books/analysis-i/) into [Lean](https://lean-lang.org/). The formalization is intended to be as faithful a paraphrasing as possible to the original text, while also showcasing Lean's features and syntax.  In particular, the formalization is _not_ optimized for efficiency, and in some cases may deviate from idiomatic Lean usage.

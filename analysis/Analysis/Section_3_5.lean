@@ -3,6 +3,8 @@ import Analysis.Section_3_1
 import Analysis.Section_3_2
 import Analysis.Section_3_4
 
+set_option linter.unusedVariables false
+
 /-!
 # Analysis I, Section 3.5: Cartesian products
 
@@ -499,7 +501,7 @@ abbrev OrderedPair.toObject' : OrderedPair ↪ Object where
     have : p1.fst = p2.fst := by
       have h1 := hp p1.fst
       have h2 := hp p2.fst
-      simp only [true_or, or_true, true_iff, iff_true] at h1 h2
+      simp only [true_or, true_iff, iff_true] at h1 h2
       rcases h1 with (h1' | h1')
       · tauto
       rcases h2 with (h2' | h2')
@@ -516,7 +518,7 @@ abbrev OrderedPair.toObject' : OrderedPair ↪ Object where
       tauto
     have h1 : (({p2.fst, p1.snd}: Set): Object) ≠ p2.fst := by
       intro h'
-      have : ∃ (X: Set), {p2.fst, p1.snd} = X := by simp [h']
+      have : ∃ (X: Set), {p2.fst, p1.snd} = X := by simp
       obtain ⟨X, hX⟩ := this
       have : ∃ (Y: Set), p2.fst = Y := by rw [←h']; simp
       obtain ⟨Y, hY⟩ := this
@@ -624,17 +626,17 @@ noncomputable abbrev SetTheory.Set.iProd_equiv_tuples (n:ℕ) (X: Fin n → Set)
 theorem OrderedPair.refl (p: OrderedPair) : p = p := by
   cases p
   rw [OrderedPair.eq]
-  cc
+  grind
 
 theorem OrderedPair.symm (p q: OrderedPair) : p = q ↔ q = p := by
   cases p
   cases q
   simp_rw [OrderedPair.eq]
-  cc
+  grind
 
 theorem OrderedPair.trans {p q r: OrderedPair} (hpq: p=q) (hqr: q=r) : p=r := by
   rw [OrderedPair.eq] at *
-  cc
+  grind
 
 theorem SetTheory.Set.tuple_refl {I:Set} {X: I → Set} (a: ∀ i, X i) :
     tuple a = tuple a := by
@@ -643,13 +645,13 @@ theorem SetTheory.Set.tuple_refl {I:Set} {X: I → Set} (a: ∀ i, X i) :
 theorem SetTheory.Set.tuple_symm {I:Set} {X: I → Set} (a b: ∀ i, X i) :
     tuple a = tuple b ↔ tuple b = tuple a := by
   simp_rw [tuple_inj]
-  cc
+  grind
 
 theorem SetTheory.Set.tuple_trans {I:Set} {X: I → Set} {a b c: ∀ i, X i}
   (hab: tuple a = tuple b) (hbc : tuple b = tuple c) :
     tuple a = tuple c := by
   simp_rw [tuple_inj] at *
-  cc
+  grind
 
 /-- Exercise 3.5.4 -/
 theorem SetTheory.Set.prod_union (A B C:Set) : A ×ˢ (B ∪ C) = (A ×ˢ B) ∪ (A ×ˢ C) := by
@@ -889,7 +891,7 @@ theorem SetTheory.Set.recursion (X: Set) (f: nat → X → X) (c:X) :
   rw [show x = (x:ℕ) by simp]
   induction' (x:ℕ) with n hn
   · rw [show ((0:ℕ):nat) = 0 by rfl]
-    cc
+    grind
   rw [←Subtype.eq_iff] at hn
   rw [h1s, h2s, hn]
 

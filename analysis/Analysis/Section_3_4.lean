@@ -1,6 +1,8 @@
 import Mathlib.Tactic
 import Analysis.Section_3_1
 
+set_option linter.unusedVariables false
+
 /-!
 # Analysis I, Section 3.4: Images and inverse images
 
@@ -376,7 +378,7 @@ theorem SetTheory.Set.image_of_inter {X Y:Set} (f:X → Y) (A B: Set) :
 
 theorem SetTheory.Set.image_of_diff {X Y:Set} (f:X → Y) (A B: Set) :
     (image f A) \ (image f B) ⊆ image f (A \ B) := by
-  simp only [subset_def, mem_image, mem_inter, mem_sdiff]
+  simp only [subset_def, mem_image, mem_sdiff]
   rintro y ⟨⟨x, ⟨h1, h2⟩⟩, h'⟩
   have : (x: Object) ∉ B := by contrapose! h'; use x
   use x, ⟨h1, this⟩
@@ -393,7 +395,7 @@ def SetTheory.Set.image_of_inter' : Decidable (∀ X Y:Set, ∀ f:X → Y, ∀ A
   use nat, nat, f, {1}, {2}
   intro h
   rw [show ({1} ∩ {2}: Set) = ∅ by apply ext; simp] at h
-  rw [show (image f ∅) = ∅ by apply ext; simp [mem_image]] at h
+  rw [show (image f ∅) = ∅ by apply ext; simp ] at h
   symm at h
   rw [eq_empty_iff_forall_notMem] at h
   contrapose! h
@@ -437,7 +439,7 @@ theorem SetTheory.Set.image_preimage_of_surj {X Y:Set} (f:X → Y) :
     (∀ S, S ⊆ Y → image f (preimage f S) = S) ↔ Function.Surjective f := by
   constructor
   · intro h y
-    simp only [subset_def, Set.ext_iff, mem_singleton, mem_image] at h
+    simp only [subset_def, Set.ext_iff, mem_image] at h
     specialize h _ (by aesop) y
     obtain ⟨x, ⟨_, hx⟩⟩ := h.mpr (by aesop)
     use x, by rwa [coe_inj] at hx
@@ -500,7 +502,7 @@ theorem SetTheory.Set.partial_functions {X Y:Set} :
     obtain ⟨⟨oY', hY'⟩, _, rfl, hF⟩ := hF
     simp only [mem_union_powerset_replace_iff, EmbeddingLike.apply_eq_iff_eq] at hF
     obtain ⟨⟨oX', hX'⟩, Y'X', hF, hF'⟩ := hF
-    simp only [EmbeddingLike.apply_eq_iff_eq] at hF
+    simp only at hF
     obtain ⟨X', Y', rfl, rfl, rfl⟩ := hF
     simp_all only [mem_powerset', powerset_axiom]
     obtain ⟨f, hF⟩ := hF'

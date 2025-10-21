@@ -1,6 +1,8 @@
 import Mathlib.Tactic
 import Analysis.Section_3_1
 
+set_option linter.unusedVariables false
+
 /-!
 # Analysis I, Section 3.2: Russell's paradox
 
@@ -140,7 +142,7 @@ theorem SetTheory.Set.not_mem_mem (A B:Set) : (A:Object) ∉ B ∨ (B:Object) �
   have hC : C ≠ ∅ := by
     unfold C
     intro h
-    simp only [eq_empty_iff_forall_notMem, mem_pair, forall_eq] at h
+    simp only [eq_empty_iff_forall_notMem, mem_pair] at h
     specialize h A
     simp only [true_or, not_true_eq_false] at h
   have ⟨x, hx⟩ := axiom_of_regularity hC

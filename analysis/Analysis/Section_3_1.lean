@@ -1,5 +1,7 @@
 import Mathlib.Tactic
 
+set_option linter.unusedVariables false
+
 /-!
 # Analysis I, Section 3.1: Fundamentals (of set theory)
 
@@ -640,7 +642,7 @@ theorem  SetTheory.Set.union_inter_distrib_left (A B C:Set) :
 /-- Proposition 3.1.27(f) -/
 theorem SetTheory.Set.union_compl {A X:Set} (hAX: A ⊆ X) : A ∪ (X \ A) = X := by
   ext
-  simp only [mem_inter, mem_union, mem_sdiff]
+  simp only [mem_union, mem_sdiff]
   tauto
 
 /-- Proposition 3.1.27(f) -/

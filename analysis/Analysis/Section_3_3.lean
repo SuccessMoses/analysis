@@ -2,6 +2,8 @@ import Mathlib.Tactic
 import Analysis.Section_3_1
 import Analysis.Tools.ExistsUnique
 
+set_option linter.unusedVariables false
+
 /-!
 # Analysis I, Section 3.3: Functions
 
@@ -544,7 +546,7 @@ example : ∃ (X Y Z:Set) (f f' : Function X Y) (g : Function Y Z), g ○ f = g 
 
 theorem Function.comp_cancel_right {X Y Z:Set} {f: Function X Y} {g g': Function Y Z}
   (heq : g ○ f = g' ○ f) (hf: f.onto) : g = g' := by
-  simp only [Function.eq_iff, Function.comp_eval, Function.one_to_one_iff] at *
+  simp only [Function.eq_iff, Function.comp_eval] at *
   intro y
   obtain ⟨x, hx⟩ := hf y
   specialize heq x
@@ -702,7 +704,7 @@ theorem Function.inv_of_comp {X Y Z:Set} {f: Function X Y} {g : Function Y Z}
     (g ○ f).inverse (Function.comp_bijective hf hg) = (f.inverse hf) ○ (g.inverse hg) := by
   rw [eq_iff]
   intro z
-  simp only [eval, inverse_eval, comp_eval]
+  simp only [eval, comp_eval]
   rw [←comp_eval, self_comp_inverse]
 
 /-- Exercise 3.3.8 -/

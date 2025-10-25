@@ -347,8 +347,6 @@ theorem Nat.lt_iff_succ_le (a b:Nat) : a < b ↔ a++ ≤ b := by
       contradiction
     exact ⟨⟨k++, hk⟩, this⟩
 
-
-
 /-- (f) a < b if and only if b = a + d for positive d. -/
 theorem Nat.lt_iff_add_pos (a b:Nat) : a < b ↔ ∃ d:Nat, d.IsPos ∧ b = a + d := by
   rw [lt_iff]
@@ -385,35 +383,12 @@ theorem Nat.ne_of_lt (a b:Nat) : a < b → a ≠ b := by
 theorem Nat.ne_of_gt (a b:Nat) : a > b → a ≠ b := by
   intro h; exact h.2.symm
 
-lemma l1 (a b k : Nat) (h : a + k = b) (hab : a ≠ b) : k ≠ 0 := by
-  sorry
-
 /-- If a > b and a < b then contradiction -/
 theorem Nat.not_lt_of_gt (a b:Nat) : a < b ∧ a > b → False := by
-  rw [lt_iff, gt_iff_lt, lt_iff]
   intro h
-  obtain ⟨⟨⟨m, hm⟩, aneq⟩, ⟨⟨n, hn⟩, bneq⟩⟩ := h
-  have : m ≠ 0 := by
-    apply l1
-    · observe : a + m = b
-      exact this
-    exact aneq
-  have : n ≠ 0 := by
-    apply l1
-    · observe : b + n = a
-      exact this
-    exact bneq
-  nth_rw 1 [hn, add_assoc, ← add_zero b] at hm
-  have : n + m = 0 := by
-    apply add_left_cancel
-    observe : b + (n + m) = b + 0
-    exact this
-  obtain ⟨mneq, nneq⟩ := by
-    apply add_eq_zero
-    exact this
+  have := (ge_antisymm (le_of_lt h.1) (le_of_lt h.2)).symm
+  have := ne_of_lt _ _ h.1
   contradiction
-
-
 
 theorem Nat.not_lt_self {a: Nat} (h : a < a) : False := by
   rw [lt_iff] at h
@@ -421,7 +396,12 @@ theorem Nat.not_lt_self {a: Nat} (h : a < a) : False := by
   contradiction
 
 theorem Nat.lt_of_le_of_lt {a b c : Nat} (hab: a ≤ b) (hbc: b < c) : a < c := by
-  sorry
+  rw [lt_iff_add_pos] at *
+  choose d hd using hab
+  choose e he1 he2 using hbc
+  use d + e; split_ands
+  . exact add_pos_right d he1
+  . rw [he2, hd, add_assoc]
 
 /-- This lemma was a `why?` statement from Proposition 2.2.13,
 but is more broadly useful, so is extracted here. -/
@@ -435,7 +415,32 @@ theorem Nat.zero_le (a:Nat) : 0 ≤ a := by
     in the preceding Lean theorems. -/
 theorem Nat.trichotomous (a b:Nat) : a < b ∨ a = b ∨ a > b := by
   -- This proof is written to follow the structure of the original text.
-  sorry
+  revert a; apply induction
+  · observe h : 0 ≤ b
+    by_cases hb : b = 0
+    · right; left
+      exact hb.symm
+    rw [← ne_eq] at hb
+    have hb : 0 ≤ b ∧ 0 ≠ b := ⟨h, hb.symm⟩
+    rw [le_iff, ← lt_iff] at hb
+    left; exact hb
+  intro a hind
+  obtain hab | hab | hab := hind
+  · rw [lt_iff_succ_le] at hab
+    by_cases h : a++ = b
+    · right; left
+      exact h
+    left
+    rw [← ne_eq] at h;
+    rw [le_iff] at hab
+    rw [lt_iff]
+    exact ⟨hab, h⟩
+  · right; right
+    rw [hab]; exact succ_gt_self b
+  right; right
+  have h : a < a++ := succ_gt_self a
+  have h₁ : b ≤ a := hab.1
+  exact lt_of_le_of_lt h₁ h
 
 /--
   (Not from textbook) Establish the decidability of this order computably.  The portion of the
@@ -449,14 +454,18 @@ theorem Nat.trichotomous (a b:Nat) : a < b ∨ a = b ∨ a > b := by
 def Nat.decLe : (a b : Nat) → Decidable (a ≤ b)
   | 0, b => by
     apply isTrue
-    sorry
+    rw [le_iff]
+    use b; abel
   | a++, b => by
     cases decLe a b with
     | isTrue h =>
       cases decEq a b with
       | isTrue h =>
         apply isFalse
-        sorry
+        by_contra hc
+        rw [le_iff] at hc
+        obtain ⟨k, hk⟩ := hc
+        rw
       | isFalse h =>
         apply isTrue
         sorry

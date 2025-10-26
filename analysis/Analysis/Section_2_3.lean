@@ -247,7 +247,7 @@ theorem Nat.exists_div_mod (n:Nat) {q: Nat} (hq: q.IsPos) :
   · observe hr : 0 ≤ (r++)
     exact hr
   constructor
-  exact this
+  · exact this
   rw [add_succ, h_eq]
 
 /-- Definition 2.3.11 (Exponentiation for natural numbers) -/

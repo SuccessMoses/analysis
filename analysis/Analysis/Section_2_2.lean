@@ -463,15 +463,27 @@ def Nat.decLe : (a b : Nat) → Decidable (a ≤ b)
       | isTrue h =>
         apply isFalse
         by_contra hc
-        rw [le_iff] at hc
-        obtain ⟨k, hk⟩ := hc
-        rw
-      | isFalse h =>
+        rw [h, le_iff] at hc
+        obtain ⟨k, hc⟩ := hc
+        nth_rw 1 [succ_add, ←add_succ, ←add_zero b] at hc
+        have hk : 0 = k++ := by
+          apply Nat.add_left_cancel
+          exact hc
+        apply succ_ne k hk.symm
+      | isFalse hn =>
         apply isTrue
-        sorry
+        rw [←lt_iff_succ_le]
+        have : a < b := by
+          exact ⟨h, hn⟩
+        exact this
     | isFalse h =>
       apply isFalse
-      sorry
+      contrapose! h
+      obtain ⟨k, hk⟩ := h
+      use (k++)
+      rw [hk, add_succ, succ_add]
+
+#check Eq.symm
 
 instance Nat.decidableRel : DecidableRel (· ≤ · : Nat → Nat → Prop) := Nat.decLe
 
@@ -531,7 +543,11 @@ example (a b c d e:Nat) (hab: a ≤ b) (hbc: b < c) (hde: d < e) :
 theorem Nat.strong_induction {m₀:Nat} {P: Nat → Prop}
   (hind: ∀ m, m ≥ m₀ → (∀ m', m₀ ≤ m' ∧ m' < m → P m') → P m) :
     ∀ m, m ≥ m₀ → P m := by
-  sorry
+  apply induction
+  · intro h
+    apply hind at h
+    apply h
+    intro k
 
 /-- Exercise 2.2.6 (backwards induction)
     Compare with Mathlib's `Nat.decreasingInduction`. -/
